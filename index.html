@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCU电影烂番茄评分与全球票房关系（气泡图）</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 20px;
+        }
+        .chart-container {
+            width: 1100px;
+            max-width: 100%;
+            height: 680px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.10);
+            padding: 20px 20px 10px 20px;
+        }
+        #bubbleChart {
+            width: 100%;
+            height: 100%;
+        }
+        .chart-footer {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 12px 0 12px;
+            font-size: 12px;
+            color: #888;
+            border-top: 1px solid #eee;
+            margin-top: 6px;
+        }
+        .chart-footer .hint {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .chart-footer .hint .dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        .chart-footer .hint span {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 520px;
+                padding: 12px;
+            }
+            .chart-footer {
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chart-container">
+        <div id="bubbleChart"></div>
+        <div class="chart-footer">
+            <div class="hint">
+                <span><span class="dot" style="background:#1f77b4;"></span>Phase 1</span>
+                <span><span class="dot" style="background:#ff7f0e;"></span>Phase 2</span>
+                <span><span class="dot" style="background:#d62728;"></span>Phase 3</span>
+            </div>
+            <div>💡 气泡大小 = 6 + (死亡数/9)×19 &nbsp;|&nbsp; 悬停查看详情</div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ----- 原始数据（与图一完全一致） -----
+            const movies = [{
+                name: 'Movie_1',
+                phase: 'Phase 1',
+                budget: 228,
+                boxOffice: 2201,
+                rotten: 89,
+                deaths: 3
+            }, {
+                name: 'Movie_2',
+                phase: 'Phase 1',
+                budget: 258,
+                boxOffice: 2348,
+                rotten: 89,
+                deaths: 9
+            }, {
+                name: 'Movie_3',
+                phase: 'Phase 1',
+                budget: 278,
+                boxOffice: 350,
+                rotten: 76,
+                deaths: 7
+            }, {
+                name: 'Movie_4',
+                phase: 'Phase 1',
+                budget: 184,
+                boxOffice: 984,
+                rotten: 82,
+                deaths: 0
+            }, {
+                name: 'Movie_5',
+                phase: 'Phase 1',
+                budget: 135,
+                boxOffice: 1016,
+                rotten: 74,
+                deaths: 9
+            }, {
+                name: 'Movie_6',
+                phase: 'Phase 1',
+                budget: 349,
+                boxOffice: 1769,
+                rotten: 80,
+                deaths: 0
+            }, {
+                name: 'Movie_7',
+                phase: 'Phase 2',
+                budget: 338,
+                boxOffice: 748,
+                rotten: 73,
+                deaths: 3
+            }, {
+                name: 'Movie_8',
+                phase: 'Phase 2',
+                budget: 326,
+                boxOffice: 1180,
+                rotten: 61,
+                deaths: 7
+            }, {
+                name: 'Movie_9',
+                phase: 'Phase 2',
+                budget: 224,
+                boxOffice: 787,
+                rotten: 70,
+                deaths: 4
+            }, {
+                name: 'Movie_10',
+                phase: 'Phase 2',
+                budget: 262,
+                boxOffice: 2123,
+                rotten: 93,
+                deaths: 1
+            }, {
+                name: 'Movie_11',
+                phase: 'Phase 2',
+                budget: 231,
+                boxOffice: 2381,
+                rotten: 93,
+                deaths: 5
+            }, {
+                name: 'Movie_12',
+                phase: 'Phase 2',
+                budget: 132,
+                boxOffice: 2442,
+                rotten: 77,
+                deaths: 4
+            }, {
+                name: 'Movie_13',
+                phase: 'Phase 3',
+                budget: 310,
+                boxOffice: 1874,
+                rotten: 89,
+                deaths: 1
+            }, {
+                name: 'Movie_14',
+                phase: 'Phase 3',
+                budget: 152,
+                boxOffice: 549,
+                rotten: 74,
+                deaths: 2
+            }, {
+                name: 'Movie_15',
+                phase: 'Phase 3',
+                budget: 182,
+                boxOffice: 973,
+                rotten: 86,
+                deaths: 8
+            }, {
+                name: 'Movie_16',
+                phase: 'Phase 3',
+                budget: 294,
+                boxOffice: 737,
+                rotten: 93,
+                deaths: 6
+            }, {
+                name: 'Movie_17',
+                phase: 'Phase 3',
+                budget: 331,
+                boxOffice: 2465,
+                rotten: 92,
+                deaths: 6
+            }, {
+                name: 'Movie_18',
+                phase: 'Phase 3',
+                budget: 331,
+                boxOffice: 1070,
+                rotten: 83,
+                deaths: 5
+            }, {
+                name: 'Movie_19',
+                phase: 'Phase 3',
+                budget: 212,
+                boxOffice: 567,
+                rotten: 74,
+                deaths: 7
+            }, {
+                name: 'Movie_20',
+                phase: 'Phase 3',
+                budget: 274,
+                boxOffice: 2284,
+                rotten: 89,
+                deaths: 3
+            }, {
+                name: 'Movie_21',
+                phase: 'Phase 3',
+                budget: 214,
+                boxOffice: 1377,
+                rotten: 76,
+                deaths: 7
+            }, {
+                name: 'Movie_22',
+                phase: 'Phase 3',
+                budget: 207,
+                boxOffice: 535,
+                rotten: 64,
+                deaths: 3
+            }, {
+                name: 'Movie_23',
+                phase: 'Phase 3',
+                budget: 330,
+                boxOffice: 688,
+                rotten: 88,
+                deaths: 7
+            }];
+
+            // ----- 颜色映射（蓝/橙/红，与图二完全匹配） -----
+            const phaseColorMap = {
+                'Phase 1': '#1f77b4',
+                'Phase 2': '#ff7f0e',
+                'Phase 3': '#d62728'
+            };
+
+            // 按 Phase 分组
+            const phaseGroups = {};
+            movies.forEach(m => {
+                if (!phaseGroups[m.phase]) phaseGroups[m.phase] = [];
+                phaseGroups[m.phase].push(m);
+            });
+
+            // 构建 ECharts 系列数据
+            const seriesData = [];
+            Object.keys(phaseGroups).forEach(phase => {
+                const items = phaseGroups[phase];
+                const data = items.map(m => {
+                    // 气泡大小：线性映射 6~25，死亡数0->6, 9->25，保证无重叠
+                    const minSize = 6;
+                    const maxSize = 25;
+                    const size = minSize + (m.deaths / 9) * (maxSize - minSize);
+                    return {
+                        value: [m.rotten, m.boxOffice],
+                        symbolSize: size,
+                        movieName: m.name,
+                        budget: m.budget,
+                        boxOffice: m.boxOffice,
+                        deaths: m.deaths,
+                        rotten: m.rotten,
+                        phase: m.phase
+                    };
+                });
+                seriesData.push({
+                    name: phase,
+                    type: 'scatter',
+                    data: data,
+                    symbolSize: function(value, params) {
+                        return params.data.symbolSize || 6;
+                    },
+                    itemStyle: {
+                        color: phaseColorMap[phase],
+                        opacity: 0.75,
+                        borderColor: '#ffffff',
+                        borderWidth: 1.0,
+                        shadowBlur: 2,
+                        shadowColor: 'rgba(0,0,0,0.06)'
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            opacity: 1,
+                            borderWidth: 2,
+                            borderColor: '#222',
+                            shadowBlur: 6,
+                            shadowColor: 'rgba(0,0,0,0.2)'
+                        }
+                    }
+                });
+            });
+
+            // ----- 初始化 ECharts -----
+            const dom = document.getElementById('bubbleChart');
+            const chart = echarts.init(dom);
+
+            // ----- 完整配置项（X轴从60，Y轴间隔200，最大2600） -----
+            const option = {
+                title: {
+                    text: 'MCU电影烂番茄评分与全球票房关系',
+                    subtext: '气泡大小 = 6 + (死亡数/9)×19  (悬停查看完整信息)',
+                    left: 'center',
+                    top: 6,
+                    textStyle: {
+                        fontSize: 20,
+                        fontWeight: 600,
+                        color: '#1e293b',
+                        fontFamily: '"Segoe UI","PingFang SC",sans-serif'
+                    },
+                    subtextStyle: {
+                        fontSize: 13,
+                        color: '#64748b',
+                        fontWeight: 400
+                    }
+                },
+                tooltip: {
+                    trigger: 'item',
+                    backgroundColor: 'rgba(255,255,255,0.96)',
+                    borderColor: '#d0d5dd',
+                    borderWidth: 1,
+                    borderRadius: 10,
+                    padding: [14, 18],
+                    textStyle: {
+                        fontSize: 13,
+                        color: '#0f172a',
+                        lineHeight: 1.7
+                    },
+                    formatter: function(params) {
+                        const d = params.data;
+                        if (!d || !d.movieName) return '数据加载中…';
+                        return `
+                            <div style="font-weight:600;font-size:15px;margin-bottom:6px;color:#0f172a;">🎬 ${d.movieName}</div>
+                            <div style="display:grid;grid-template-columns:auto 1fr;gap:2px 14px;margin-top:4px;">
+                                <span style="color:#475569;">📊 阶段</span><span style="font-weight:500;">${d.phase}</span>
+                                <span style="color:#475569;">💰 制作成本</span><span style="font-weight:500;">$${d.budget}M</span>
+                                <span style="color:#475569;">🏆 全球票房</span><span style="font-weight:500;">$${d.boxOffice}M</span>
+                                <span style="color:#475569;">💀 死亡角色数</span><span style="font-weight:500;">${d.deaths}</span>
+                                <span style="color:#475569;">🍅 烂番茄评分</span><span style="font-weight:500;">${d.rotten}%</span>
+                            </div>
+                        `;
+                    },
+                    extraCssText: 'box-shadow: 0 8px 24px rgba(0,0,0,0.12);'
+                },
+                grid: {
+                    left: 70,
+                    right: 45,
+                    top: 90,
+                    bottom: 55
+                },
+                xAxis: {
+                    name: '烂番茄评分',
+                    nameLocation: 'center',
+                    nameGap: 32,
+                    nameTextStyle: {
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: '#334155'
+                    },
+                    min: 60,          // X轴从60开始
+                    max: 100,
+                    interval: 5,      // 步长5
+                    axisLine: {
+                        lineStyle: { color: '#cbd5e1' }
+                    },
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    splitLine: {
+                        show: true,
+                        lineStyle: { color: '#f1f5f9', type: 'dashed' }
+                    },
+                    axisLabel: {
+                        fontSize: 12,
+                        color: '#64748b',
+                        fontWeight: 400
+                    }
+                },
+                yAxis: {
+                    name: '全球票房（百万）',
+                    nameLocation: 'center',
+                    nameGap: 50,
+                    nameTextStyle: {
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: '#334155'
+                    },
+                    min: 0,
+                    max: 2600,         // 最大2600
+                    interval: 200,     // 间隔200
+                    axisLine: {
+                        lineStyle: { color: '#cbd5e1' }
+                    },
+                    splitLine: {
+                        show: true,
+                        lineStyle: { color: '#f1f5f9', type: 'dashed' }
+                    },
+                    axisLabel: {
+                        fontSize: 12,
+                        color: '#64748b',
+                        fontWeight: 400,
+                        formatter: function(val) {
+                            return val + 'M';
+                        }
+                    }
+                },
+                series: seriesData,
+                legend: {
+                    data: ['Phase 1', 'Phase 2', 'Phase 3'],
+                    top: 52,
+                    left: 'center',
+                    icon: 'circle',
+                    itemWidth: 14,
+                    itemHeight: 14,
+                    textStyle: {
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: '#1e293b',
+                        padding: [0, 8, 0, 4]
+                    },
+                    itemGap: 28
+                },
+                animationDuration: 800,
+                animationEasing: 'cubicOut'
+            };
+
+            chart.setOption(option);
+
+            // ----- 自适应布局 -----
+            window.addEventListener('resize', function() {
+                chart.resize();
+            });
+
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(() => { chart.resize(); });
+                ro.observe(dom);
+            }
+
+            window.__chart = chart;
+        })();
+    </script>
+
+</body>
+</html>
