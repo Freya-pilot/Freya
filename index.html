@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MCU电影烂番茄评分与全球票房关系（气泡图）</title>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js">
+    <!-- 使用更稳定的 cdnjs 镜像 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js">
     </script>
     <style>
         * {
@@ -85,7 +86,7 @@
                 <span><span class="dot" style="background:#ff7f0e;"></span>Phase 2</span>
                 <span><span class="dot" style="background:#d62728;"></span>Phase 3</span>
             </div>
-            <div>💡 气泡大小 = 6 + (死亡数/9)×19 &nbsp;|&nbsp; 悬停查看详情</div>
+            <div>💡 气泡大小 = 15 + (死亡数/9)×35 &nbsp;|&nbsp; 悬停查看详情</div>
         </div>
     </div>
 
@@ -255,7 +256,7 @@
                 deaths: 7
             }];
 
-            // ----- 颜色映射（蓝/橙/红，与图二完全匹配） -----
+            // ----- 颜色映射（蓝/橙/红） -----
             const phaseColorMap = {
                 'Phase 1': '#1f77b4',
                 'Phase 2': '#ff7f0e',
@@ -274,9 +275,9 @@
             Object.keys(phaseGroups).forEach(phase => {
                 const items = phaseGroups[phase];
                 const data = items.map(m => {
-                    // 气泡大小：线性映射 6~25，死亡数0->6, 9->25，保证无重叠
-                    const minSize = 6;
-                    const maxSize = 25;
+                    // 气泡大小：线性映射 15~50，死亡数0->15, 9->50，兼顾清晰度与重叠控制
+                    const minSize = 15;
+                    const maxSize = 50;
                     const size = minSize + (m.deaths / 9) * (maxSize - minSize);
                     return {
                         value: [m.rotten, m.boxOffice],
@@ -294,22 +295,22 @@
                     type: 'scatter',
                     data: data,
                     symbolSize: function(value, params) {
-                        return params.data.symbolSize || 6;
+                        return params.data.symbolSize || 15;
                     },
                     itemStyle: {
                         color: phaseColorMap[phase],
                         opacity: 0.75,
                         borderColor: '#ffffff',
-                        borderWidth: 1.0,
-                        shadowBlur: 2,
-                        shadowColor: 'rgba(0,0,0,0.06)'
+                        borderWidth: 1.2,
+                        shadowBlur: 3,
+                        shadowColor: 'rgba(0,0,0,0.08)'
                     },
                     emphasis: {
                         itemStyle: {
                             opacity: 1,
-                            borderWidth: 2,
+                            borderWidth: 2.5,
                             borderColor: '#222',
-                            shadowBlur: 6,
+                            shadowBlur: 8,
                             shadowColor: 'rgba(0,0,0,0.2)'
                         }
                     }
@@ -320,11 +321,11 @@
             const dom = document.getElementById('bubbleChart');
             const chart = echarts.init(dom);
 
-            // ----- 完整配置项（X轴从60，Y轴间隔200，最大2600） -----
+            // ----- 配置项（坐标轴不变） -----
             const option = {
                 title: {
                     text: 'MCU电影烂番茄评分与全球票房关系',
-                    subtext: '气泡大小 = 6 + (死亡数/9)×19  (悬停查看完整信息)',
+                    subtext: '气泡大小 = 15 + (死亡数/9)×35  (悬停查看完整信息)',
                     left: 'center',
                     top: 6,
                     textStyle: {
@@ -382,9 +383,9 @@
                         fontWeight: 500,
                         color: '#334155'
                     },
-                    min: 60,          // X轴从60开始
+                    min: 60,
                     max: 100,
-                    interval: 5,      // 步长5
+                    interval: 5,
                     axisLine: {
                         lineStyle: { color: '#cbd5e1' }
                     },
@@ -411,8 +412,8 @@
                         color: '#334155'
                     },
                     min: 0,
-                    max: 2600,         // 最大2600
-                    interval: 200,     // 间隔200
+                    max: 2600,
+                    interval: 200,
                     axisLine: {
                         lineStyle: { color: '#cbd5e1' }
                     },
