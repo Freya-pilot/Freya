@@ -163,9 +163,9 @@
             padding: 32px 36px 24px 36px;
         }
 
-        /* ===== 头部 ———— 更浅的蓝色（比目录浅很多） ===== */
+        /* ===== 头部 ===== */
         .report-header {
-            background: #3a5a7a;  /* 比 #2a3f6e 更浅，与 #1a2a4a 形成鲜明对比 */
+            background: #3a5a7a;
             border-radius: 20px;
             padding: 24px 28px 18px 28px;
             margin-bottom: 24px;
@@ -291,17 +291,18 @@
             margin: 0;
         }
 
+        /* 分阶段三列布局：让每个小图更宽，x轴有更多空间 */
         .phase-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 14px;
+            grid-template-columns: 1.2fr 1.2fr 1.2fr;
+            gap: 12px;
             margin: 10px 0 14px 0;
         }
         .phase-grid .mini-chart {
             background: #ffffff;
             border-radius: 14px;
             border: 1px solid #eaf0f6;
-            padding: 10px 10px 4px 10px;
+            padding: 10px 8px 4px 8px;
         }
         .phase-grid .mini-chart .phase-label {
             text-align: center;
@@ -318,7 +319,7 @@
         }
         .mini-chart-container {
             width: 100%;
-            height: 270px;
+            height: 340px;
         }
 
         /* ===== 结论卡片 ===== */
@@ -542,7 +543,7 @@
                 grid-template-columns: 1fr;
             }
             .mini-chart-container {
-                height: 240px;
+                height: 280px;
             }
             .phase-cards {
                 grid-template-columns: 1fr;
@@ -593,7 +594,7 @@
                 height: 280px;
             }
             .mini-chart-container {
-                height: 200px;
+                height: 220px;
             }
             .section-title {
                 font-size: 18px;
@@ -622,7 +623,7 @@
 
     <div class="app">
 
-        <!-- ===== 左侧目录（深蓝色） ===== -->
+        <!-- ===== 左侧目录 ===== -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-title">研究目录</div>
             <nav>
@@ -638,10 +639,10 @@
         <!-- ===== 右侧主内容 ===== -->
         <main class="main-content">
 
-            <!-- ===== HEADER ———— 更浅的蓝色 ===== -->
+            <!-- ===== HEADER ===== -->
             <header class="report-header">
                 <h1>
-                    漫威宇宙的“伤亡”与“票房”经济学
+                    漫威宇宙的"伤亡"与"票房"经济学
                     <small>死的人越多，票房越高吗？</small>
                 </h1>
                 <div class="sub">🎬 基于 23 部 MCU 电影数据的实证检验</div>
@@ -652,7 +653,7 @@
                 </div>
             </header>
 
-            <!-- ===== SECTION 1 : 研究概述 ===== -->
+            <!-- ===== SECTION 1 ===== -->
             <section class="section" id="sec-overview">
                 <div class="section-title"><span class="num">01</span> 研究概述</div>
                 <div class="section-desc">
@@ -667,7 +668,7 @@
                 </div>
             </section>
 
-            <!-- ===== SECTION 2 : 死亡人数与票房 ===== -->
+            <!-- ===== SECTION 2 ===== -->
             <section class="section" id="sec-death-vs-box">
                 <div class="section-title"><span class="num">02</span> 死亡人数与票房</div>
                 <div class="section-desc">
@@ -704,12 +705,13 @@
                 </div>
             </section>
 
-            <!-- ===== SECTION 3 : 分阶段深度分析 ===== -->
+            <!-- ===== SECTION 3 ===== -->
             <section class="section" id="sec-phase">
                 <div class="section-title"><span class="num">03</span> 分阶段深度分析</div>
                 <div class="section-desc">
                     为避免样本整体性掩盖阶段性差异，将电影按 <strong>Phase 1、Phase 2、Phase 3</strong> 拆分，分别观察每个阶段内部死亡人数与票房的关系。
-                    下方三个图表分别展示各阶段的死亡人数与票房分布，虚线为线性趋势线。
+                    下方三个图表分别展示各阶段的死亡人数与票房分布，虚线为线性趋势线。<br />
+                    <span style="color:#3a5a7a;">💡 三张图均显示 y 轴，y 轴范围统一为 0~2500，x轴数据点横向充分铺开。</span>
                 </div>
 
                 <div class="phase-cards">
@@ -743,11 +745,11 @@
 
                 <div class="insight-box blue">
                     <strong>📌 关键发现</strong><br />
-                    “不管是初代英雄阶段、宇宙扩张阶段，还是终局决战阶段，每一段里，角色死亡数量和票房都不存在正向上涨关系。”
+                    "不管是初代英雄阶段、宇宙扩张阶段，还是终局决战阶段，每一段里，角色死亡数量和票房都不存在正向上涨关系。"
                 </div>
             </section>
 
-            <!-- ===== SECTION 4 : 口碑评分与票房 ===== -->
+            <!-- ===== SECTION 4 ===== -->
             <section class="section" id="sec-reputation">
                 <div class="section-title"><span class="num">04</span> 口碑评分与票房的正相关</div>
                 <div class="section-desc">
@@ -767,12 +769,12 @@
 
                 <div class="insight-box teal">
                     <strong>📌 关键发现</strong><br />
-                    “口碑评分越高，票房同步正向增长”<br />
+                    "口碑评分越高，票房同步正向增长"<br />
                     <span style="color:#4a5f7a;font-size:14px;">➜ 评分与票房呈现明显正相关，内容质量是驱动票房的核心因素，外在形式（死亡人数）无法替代。</span>
                 </div>
             </section>
 
-            <!-- ===== SECTION 5 : 气泡图 ===== -->
+            <!-- ===== SECTION 5 ===== -->
             <section class="section" id="sec-dashboard">
                 <div class="section-title"><span class="num">05</span> MCU电影评分交互看板</div>
                 <div class="section-desc">
@@ -780,7 +782,7 @@
                 </div>
 
                 <div class="chart-box">
-                    <div class="chart-title"><span>🍅 烂番茄评分 · 全球票房 · 死亡人数</span><span class="tag">气泡大小 = 死亡人数（6~28px）</span></div>
+                    <div class="chart-title"><span>🍅 烂番茄评分 · 全球票房 · 死亡人数</span><span class="tag">气泡大小 = 死亡人数（14~40px）</span></div>
                     <div class="chart-container" id="bubbleChart"></div>
                 </div>
 
@@ -792,7 +794,7 @@
                 </div>
             </section>
 
-            <!-- ===== SECTION 6 : 核心结论 ===== -->
+            <!-- ===== SECTION 6 ===== -->
             <section class="section" id="sec-conclusion">
                 <div class="section-title"><span class="num">06</span> 核心结论</div>
                 <div class="section-desc" style="border-left-color:#0b1a33;">
@@ -939,15 +941,15 @@
                                 <div>📌 阶段：${d.phase}</div>`;
                     }
                 },
-                grid: { left: 70, right: 30, top: 10, bottom: 10 },
+                grid: { left: 70, right: 90, top: 10, bottom: 30 },
                 xAxis: {
                     type: 'value',
                     name: '票房 (百万美元)',
                     nameLocation: 'middle',
-                    nameGap: 25,
+                    nameGap: 30,
                     nameTextStyle: { fontSize: 11, color: '#3f5a75' },
                     axisLabel: { fontSize: 10, color: '#3f5a75', formatter: v => v + 'M' },
-                    splitLine: { lineStyle: { color: '#eef3f8', type: 'dashed' } }
+                    splitLine: { show: false }
                 },
                 yAxis: {
                     type: 'category',
@@ -1007,15 +1009,15 @@
                                 <div>📌 阶段：${d.phase}</div>`;
                     }
                 },
-                grid: { left: 70, right: 30, top: 10, bottom: 10 },
+                grid: { left: 70, right: 90, top: 10, bottom: 30 },
                 xAxis: {
                     type: 'value',
                     name: '死亡人数 (人)',
                     nameLocation: 'middle',
-                    nameGap: 25,
+                    nameGap: 30,
                     nameTextStyle: { fontSize: 11, color: '#3f5a75' },
                     axisLabel: { fontSize: 10, color: '#3f5a75' },
-                    splitLine: { lineStyle: { color: '#eef3f8', type: 'dashed' } }
+                    splitLine: { show: false }
                 },
                 yAxis: {
                     type: 'category',
@@ -1041,7 +1043,7 @@
         }
 
         // ================================================================
-        // 3. 死亡人数 vs 票房 散点图 (x轴从0开始)
+        // 3. 死亡人数 vs 票房 散点图
         // ================================================================
         function renderDeathScatter() {
             const chart = initChart('deathScatter');
@@ -1118,7 +1120,7 @@
         }
 
         // ================================================================
-        // 4. 分阶段散点图 (x轴从0开始)
+        // 4. 分阶段散点图
         // ================================================================
         function renderPhaseScatter(phase, containerId, color) {
             const chart = initChart(containerId);
@@ -1130,6 +1132,8 @@
                 xMax = 10;
             const yMin = intercept + slope * xMin;
             const yMax = intercept + slope * xMax;
+
+            const UNIFIED_Y_MAX = 2500;
 
             chart.setOption({
                 tooltip: {
@@ -1147,34 +1151,40 @@
                                 <div>💰 票房：$${d.boxOffice}M</div>`;
                     }
                 },
-                grid: { left: 46, right: 14, top: 14, bottom: 24 },
+                grid: { left: 70, right: 6, top: 8, bottom: 24 },
                 xAxis: {
                     name: '死亡人数',
                     nameLocation: 'center',
-                    nameGap: 18,
-                    nameTextStyle: { fontSize: 11, fontWeight: 500, color: '#3f5a75' },
+                    nameGap: 10,
+                    nameTextStyle: { fontSize: 9, fontWeight: 500, color: '#3f5a75' },
                     min: 0,
                     max: 10,
                     interval: 2,
                     splitLine: { show: true, lineStyle: { color: '#eef3f8', type: 'dashed' } },
-                    axisLabel: { fontSize: 10, color: '#3f5a75' }
+                    axisLabel: { fontSize: 8, color: '#3f5a75' }
                 },
                 yAxis: {
+                    show: true,
                     name: '票房 (百万$)',
                     nameLocation: 'center',
-                    nameGap: 26,
-                    nameTextStyle: { fontSize: 11, fontWeight: 500, color: '#3f5a75' },
+                    nameGap: 22,
+                    nameTextStyle: { fontSize: 9, fontWeight: 500, color: '#3f5a75' },
                     min: 0,
-                    max: 2600,
+                    max: UNIFIED_Y_MAX,
                     interval: 500,
                     splitLine: { show: true, lineStyle: { color: '#eef3f8', type: 'dashed' } },
-                    axisLabel: { fontSize: 10, color: '#3f5a75', formatter: v => v + 'M' }
+                    axisLabel: {
+                        fontSize: 8,
+                        color: '#3f5a75',
+                        formatter: v => v + 'M',
+                        margin: 6
+                    }
                 },
                 series: [{
                     type: 'scatter',
                     data: items.map(m => ({ value: [m.deaths, m.boxOffice], movieName: m.name, deaths: m
                             .deaths, boxOffice: m.boxOffice, phase: m.phase })),
-                    symbolSize: 26,
+                    symbolSize: 30,
                     itemStyle: { color: color, opacity: 0.85, borderColor: '#ffffff', borderWidth: 1.5 },
                     emphasis: { itemStyle: { opacity: 1, borderWidth: 3, borderColor: '#0b1a33' } },
                     markLine: {
@@ -1279,7 +1289,7 @@
                 groups[m.phase].push(m); });
             const series = Object.keys(groups).map(phase => {
                 const data = groups[phase].map(m => {
-                    const size = 6 + (m.deaths / 9) * 22;
+                    const size = 14 + (m.deaths / 9) * 26;
                     return { value: [m.rotten, m.boxOffice], symbolSize: size, movieName: m.name, budget: m
                             .budget, boxOffice: m.boxOffice, deaths: m.deaths, rotten: m.rotten,
                         phase: m.phase };
@@ -1288,7 +1298,7 @@
                     name: phase,
                     type: 'scatter',
                     data: data,
-                    symbolSize: function(val, p) { return p.data.symbolSize || 8; },
+                    symbolSize: function(val, p) { return p.data.symbolSize || 14; },
                     itemStyle: {
                         color: phaseColor[phase],
                         opacity: 0.78,
@@ -1401,7 +1411,7 @@
         }
 
         // ================================================================
-        // 8. 目录高亮 (IntersectionObserver + 点击即时高亮)
+        // 8. 目录高亮 ———— 彻底修复点击跳动问题
         // ================================================================
         function setupHighlight() {
             const sectionIds = ['sec-overview', 'sec-death-vs-box', 'sec-phase', 'sec-reputation', 'sec-dashboard',
@@ -1409,8 +1419,14 @@
             ];
             const sidebarLinks = document.querySelectorAll('.sidebar nav a');
             const topLinks = document.querySelectorAll('.top-toc a');
+            let currentActiveId = null;
+            let updateTimer = null;
+            let isManualScrolling = false;
+            let scrollTimer = null;
 
             function setActive(id) {
+                if (currentActiveId === id) return;
+                currentActiveId = id;
                 sidebarLinks.forEach(a => {
                     a.classList.toggle('active', a.getAttribute('href') === '#' + id);
                 });
@@ -1419,37 +1435,26 @@
                 });
             }
 
-            // 点击链接时立即高亮
-            const allNav = [...sidebarLinks, ...topLinks];
-            allNav.forEach(a => {
-                a.addEventListener('click', function(e) {
-                    const href = this.getAttribute('href');
-                    if (href && href.startsWith('#')) {
-                        const id = href.substring(1);
-                        setActive(id);
-                    }
-                });
-            });
-
-            // IntersectionObserver 自动检测
+            // IntersectionObserver：手动滚动期间不更新
             const observer = new IntersectionObserver((entries) => {
-                let visibleId = null;
-                let minTop = Infinity;
+                if (isManualScrolling) return;
+                let bestId = null;
+                let bestRatio = 0;
                 for (const entry of entries) {
-                    if (entry.isIntersecting) {
-                        const rect = entry.target.getBoundingClientRect();
-                        if (rect.top < minTop && rect.top >= -50) {
-                            minTop = rect.top;
-                            visibleId = entry.target.id;
-                        }
+                    if (entry.isIntersecting && entry.intersectionRatio > bestRatio) {
+                        bestRatio = entry.intersectionRatio;
+                        bestId = entry.target.id;
                     }
                 }
-                if (visibleId) {
-                    setActive(visibleId);
+                if (bestId && bestRatio > 0.1) {
+                    clearTimeout(updateTimer);
+                    updateTimer = setTimeout(() => {
+                        setActive(bestId);
+                    }, 80);
                 }
             }, {
-                rootMargin: '-80px 0px -80px 0px',
-                threshold: 0.1
+                rootMargin: '0px 0px -40px 0px',
+                threshold: [0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5]
             });
 
             sectionIds.forEach(id => {
@@ -1457,46 +1462,60 @@
                 if (el) observer.observe(el);
             });
 
-            // 初始高亮
-            setTimeout(() => {
-                for (const id of sectionIds) {
+            // 点击目录：平滑滚动 + 高亮稳定
+            const allNav = [...sidebarLinks, ...topLinks];
+            allNav.forEach(a => {
+                a.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (!href || !href.startsWith('#')) return;
+                    const id = href.substring(1);
                     const el = document.getElementById(id);
-                    if (!el) continue;
-                    const rect = el.getBoundingClientRect();
-                    if (rect.top <= 120 && rect.bottom >= 80) {
-                        setActive(id);
-                        break;
-                    }
-                }
-            }, 200);
+                    if (!el) return;
 
-            // 滚动结束校准
-            let scrollTimer;
-            window.addEventListener('scroll', function() {
-                clearTimeout(scrollTimer);
-                scrollTimer = setTimeout(() => {
-                    let bestId = sectionIds[0];
-                    let bestDist = Infinity;
-                    for (const id of sectionIds) {
-                        const el = document.getElementById(id);
-                        if (!el) continue;
-                        const rect = el.getBoundingClientRect();
-                        const top = rect.top;
-                        if (top < 200 && top > -100) {
-                            if (Math.abs(top - 80) < bestDist) {
-                                bestDist = Math.abs(top - 80);
-                                bestId = id;
-                            }
+                    e.preventDefault();
+
+                    // 取消之前的滚动定时器
+                    clearTimeout(scrollTimer);
+                    clearTimeout(updateTimer);
+
+                    // 进入手动滚动模式
+                    isManualScrolling = true;
+
+                    // 立即更新高亮 + URL
+                    setActive(id);
+                    if (history.pushState) {
+                        history.pushState(null, '', '#' + id);
+                    }
+
+                    // 执行平滑滚动
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                    // 滚动完成后恢复 Observer
+                    const finishScroll = () => {
+                        isManualScrolling = false;
+                        setActive(id);
+                        scrollTimer = null;
+                        // 移除事件监听
+                        document.removeEventListener('scrollend', finishScroll);
+                    };
+
+                    // 优先使用 scrollend 事件（现代浏览器）
+                    document.addEventListener('scrollend', finishScroll, { once: true });
+
+                    // 后备：如果 scrollend 未触发（兼容性），用 setTimeout 兜底
+                    scrollTimer = setTimeout(() => {
+                        if (isManualScrolling) {
+                            finishScroll();
                         }
-                    }
-                    const lastId = sectionIds[sectionIds.length - 1];
-                    const lastEl = document.getElementById(lastId);
-                    if (lastEl && lastEl.getBoundingClientRect().bottom < window.innerHeight + 50) {
-                        bestId = lastId;
-                    }
-                    setActive(bestId);
-                }, 150);
+                        scrollTimer = null;
+                    }, 600);
+                });
             });
+
+            // 初始激活
+            setTimeout(() => {
+                setActive(sectionIds[0]);
+            }, 200);
         }
 
         // ================================================================
