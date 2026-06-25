@@ -3,281 +3,1057 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCU电影烂番茄评分与全球票房关系（气泡图）</title>
-    <!-- 使用更稳定的 cdnjs 镜像 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js">
+    <title>MCU · 伤亡与票房经济学 · 数据可视化报告</title>
+    <!-- ECharts CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js">
     </script>
     <style>
+        /* ===== 全局重置 & 基础 ===== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            background: #f5f7fa;
+            background: #f0f4f8;
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, system-ui, -apple-system, sans-serif;
+            color: #1e2a41;
+            padding: 24px 20px;
             display: flex;
             justify-content: center;
-            align-items: center;
             min-height: 100vh;
-            font-family: 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
-            padding: 20px;
         }
-        .chart-container {
-            width: 1100px;
-            max-width: 100%;
-            height: 680px;
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.10);
-            padding: 20px 20px 10px 20px;
-        }
-        #bubbleChart {
+
+        .app {
+            display: flex;
+            gap: 28px;
+            max-width: 1280px;
             width: 100%;
-            height: 100%;
+            align-items: flex-start;
         }
-        .chart-footer {
+
+        /* ===== 左侧目录（sticky） ===== */
+        .sidebar {
+            width: 210px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 24px;
+            align-self: flex-start;
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 20px 14px 18px 14px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            border: 1px solid #eaf0f6;
+            max-height: calc(100vh - 48px);
+            overflow-y: auto;
+        }
+
+        .sidebar .sidebar-title {
+            font-size: 16px;
+            font-weight: 650;
+            color: #0b1a33;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #eef2f7;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar .sidebar-title::before {
+            content: "📑";
+            font-size: 18px;
+        }
+
+        .sidebar nav {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sidebar nav a {
+            display: block;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #4a5f7a;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s, font-weight 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar nav a:hover {
+            background: #f0f6fe;
+            color: #0b1a33;
+        }
+
+        .sidebar nav a.active {
+            background: #eef4fe;
+            color: #0b1a33;
+            font-weight: 600;
+            border-left-color: #1a5a9c;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: #f0f4f8;
+            border-radius: 4px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #cbd8e6;
+            border-radius: 4px;
+        }
+
+        /* ===== 右侧主内容 ===== */
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            padding: 32px 36px 24px 36px;
+        }
+
+        /* ===== 头部 ===== */
+        .report-header {
+            border-bottom: 2px solid #eef2f7;
+            padding-bottom: 20px;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+
+        .report-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0b1a33;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+
+        .report-header h1 small {
+            font-weight: 400;
+            font-size: 20px;
+            color: #4a5f7a;
+            background: #f0f4fc;
+            padding: 2px 18px;
+            border-radius: 40px;
+            margin-left: 10px;
+            display: inline-block;
+        }
+
+        .report-header .sub {
+            margin-top: 8px;
+            font-size: 17px;
+            color: #3e5a7a;
+            background: #f5f9ff;
+            padding: 6px 22px;
+            border-radius: 30px;
+            display: inline-block;
+            font-weight: 450;
+        }
+
+        .report-header .meta {
+            margin-top: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px 32px;
+            font-size: 14px;
+            color: #4d637f;
+        }
+
+        .report-header .meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ===== 章节通用 ===== */
+        .section {
+            margin-bottom: 44px;
+            scroll-margin-top: 24px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 650;
+            color: #0b1a33;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title .num {
+            background: #0b1a33;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 0 12px;
+            border-radius: 30px;
+            line-height: 28px;
+        }
+
+        .section-desc {
+            font-size: 15px;
+            color: #4a5f7a;
+            margin-bottom: 18px;
+            line-height: 1.7;
+            padding-left: 4px;
+            border-left: 3px solid #d0ddea;
+            padding-left: 18px;
+        }
+
+        .section-desc strong {
+            color: #0b1a33;
+        }
+
+        /* ===== 图表容器 ===== */
+        .chart-box {
+            background: #ffffff;
+            border-radius: 18px;
+            border: 1px solid #eaf0f6;
+            padding: 16px 16px 8px 16px;
+            margin: 10px 0 16px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+        }
+
+        .chart-box .chart-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a334d;
+            margin-bottom: 4px;
             display: flex;
             justify-content: space-between;
-            padding: 6px 12px 0 12px;
+            align-items: center;
+        }
+
+        .chart-box .chart-title .tag {
+            font-weight: 400;
             font-size: 12px;
-            color: #888;
-            border-top: 1px solid #eee;
-            margin-top: 6px;
+            color: #6a7f9a;
+            background: #f0f4fa;
+            padding: 2px 14px;
+            border-radius: 30px;
         }
-        .chart-footer .hint {
+
+        .chart-container {
+            width: 100%;
+            height: 460px;
+        }
+
+        /* 双柱状图并排 */
+        .dual-chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .dual-chart-grid .chart-box {
+            margin: 0;
+        }
+
+        /* 三阶段并排小图 */
+        .phase-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin: 10px 0 14px 0;
+        }
+
+        .phase-grid .mini-chart {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #eaf0f6;
+            padding: 10px 10px 4px 10px;
+        }
+
+        .phase-grid .mini-chart .phase-label {
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a334d;
+            margin-bottom: 2px;
+        }
+
+        .phase-grid .mini-chart .phase-sub {
+            text-align: center;
+            font-size: 12px;
+            color: #6a7f9a;
+            margin-bottom: 2px;
+        }
+
+        .mini-chart-container {
+            width: 100%;
+            height: 270px;
+        }
+
+        /* ===== 结论卡片 ===== */
+        .conclusion-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 14px;
+        }
+
+        .conclusion-card {
+            background: #f8faff;
+            border-radius: 16px;
+            padding: 18px 22px;
+            border: 1px solid #eaf0f6;
+        }
+
+        .conclusion-card .label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4d6a8f;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .conclusion-card .value {
+            font-size: 18px;
+            font-weight: 650;
+            color: #0b1a33;
+            margin: 4px 0 2px;
+        }
+
+        .conclusion-card .note {
+            font-size: 14px;
+            color: #4a5f7a;
+            line-height: 1.5;
+        }
+
+        .conclusion-card.highlight {
+            background: #eef4fe;
+            border-color: #b8cef0;
+        }
+
+        /* ===== 底部 ===== */
+        .report-footer {
+            border-top: 2px solid #eef2f7;
+            padding-top: 18px;
+            margin-top: 12px;
             display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 16px;
+            gap: 10px;
+            font-size: 14px;
+            color: #4d637f;
         }
-        .chart-footer .hint .dot {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 4px;
-            border: 1px solid rgba(0, 0, 0, 0.08);
+
+        .report-footer .source {
+            color: #4a6885;
         }
-        .chart-footer .hint span {
-            display: inline-flex;
-            align-items: center;
-            gap: 2px;
+
+        .report-footer .team {
+            font-weight: 500;
+            color: #1a334d;
         }
-        @media (max-width: 768px) {
-            .chart-container {
-                height: 520px;
-                padding: 12px;
+
+        /* ===== 关键发现框 ===== */
+        .insight-box {
+            margin-top: 14px;
+            background: #f5f9ff;
+            border-radius: 14px;
+            padding: 14px 20px;
+            border-left: 4px solid #b22234;
+        }
+
+        .insight-box.blue {
+            border-left-color: #1a5a9c;
+        }
+
+        .insight-box.teal {
+            border-left-color: #2a6bb0;
+        }
+
+        .insight-box strong {
+            color: #0b1a33;
+        }
+
+        .insight-box ul {
+            margin-top: 4px;
+            padding-left: 20px;
+            list-style-type: disc;
+            color: #3e5a7a;
+        }
+
+        .phase-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 14px;
+            margin: 10px 0 12px 0;
+        }
+
+        .phase-cards .card {
+            border-radius: 12px;
+            padding: 12px 14px;
+            text-align: center;
+            border: 1px solid #d0ddea;
+        }
+
+        .phase-cards .card .pname {
+            font-weight: 600;
+        }
+        .phase-cards .card .psub {
+            font-size: 13px;
+            color: #3e5a7a;
+        }
+        .phase-cards .card .pfind {
+            font-size: 14px;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .phase-cards .card .pfind span {
+            color: #b22234;
+        }
+        .phase-cards .card.p1 {
+            background: #f0f6fe;
+            border-color: #d0ddea;
+        }
+        .phase-cards .card.p2 {
+            background: #fef7ed;
+            border-color: #f5d6b3;
+        }
+        .phase-cards .card.p3 {
+            background: #fdeaea;
+            border-color: #f5c2c2;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 920px) {
+            .app {
+                flex-direction: column;
+                gap: 20px;
             }
-            .chart-footer {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                top: 0;
+                max-height: none;
+                padding: 14px 16px;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 6px 12px;
+            }
+            .sidebar .sidebar-title {
+                padding-bottom: 0;
+                border-bottom: none;
+                margin-bottom: 0;
+                font-size: 15px;
+                width: auto;
+                flex-shrink: 0;
+            }
+            .sidebar .sidebar-title::before {
+                content: "📑";
+            }
+            .sidebar nav {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 2px 6px;
+            }
+            .sidebar nav a {
+                padding: 4px 12px;
+                font-size: 13px;
+                border-left: none;
+                border-bottom: 2px solid transparent;
+                border-radius: 6px;
+            }
+            .sidebar nav a.active {
+                border-left: none;
+                border-bottom-color: #1a5a9c;
+                background: #eef4fe;
+            }
+            .main-content {
+                padding: 20px 18px 18px 18px;
+            }
+            .report-header h1 {
+                font-size: 26px;
+            }
+            .report-header h1 small {
+                font-size: 16px;
+                margin-left: 0;
+                display: block;
+                margin-top: 4px;
+            }
+            .dual-chart-grid {
+                grid-template-columns: 1fr;
+            }
+            .phase-grid {
+                grid-template-columns: 1fr;
+            }
+            .mini-chart-container {
+                height: 240px;
+            }
+            .phase-cards {
+                grid-template-columns: 1fr;
+            }
+            .conclusion-grid {
+                grid-template-columns: 1fr;
+            }
+            .chart-container {
+                height: 360px;
+            }
+            .report-footer {
                 flex-direction: column;
                 align-items: center;
-                gap: 4px;
-                font-size: 11px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px 8px;
+            }
+            .main-content {
+                padding: 14px 12px 14px 12px;
+                border-radius: 18px;
+            }
+            .report-header h1 {
+                font-size: 20px;
+            }
+            .chart-container {
+                height: 280px;
+            }
+            .mini-chart-container {
+                height: 200px;
+            }
+            .section-title {
+                font-size: 18px;
+            }
+            .sidebar nav a {
+                font-size: 12px;
+                padding: 3px 10px;
             }
         }
     </style>
 </head>
 <body>
 
-    <div class="chart-container">
-        <div id="bubbleChart"></div>
-        <div class="chart-footer">
-            <div class="hint">
-                <span><span class="dot" style="background:#1f77b4;"></span>Phase 1</span>
-                <span><span class="dot" style="background:#ff7f0e;"></span>Phase 2</span>
-                <span><span class="dot" style="background:#d62728;"></span>Phase 3</span>
-            </div>
-            <div>💡 气泡大小 = 15 + (死亡数/9)×35 &nbsp;|&nbsp; 悬停查看详情</div>
-        </div>
-    </div>
+    <div class="app">
 
+        <!-- ============================================================ -->
+        <!-- 左侧目录导航 (sticky) -->
+        <!-- ============================================================ -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-title">研究目录</div>
+            <nav>
+                <a href="#sec-overview" class="active">研究概述</a>
+                <a href="#sec-death-vs-box">死亡人数与票房</a>
+                <a href="#sec-phase">分阶段深度分析</a>
+                <a href="#sec-reputation">口碑评分与票房</a>
+                <a href="#sec-dashboard">MCU电影评分交互看板</a>
+                <a href="#sec-conclusion">核心结论</a>
+            </nav>
+        </aside>
+
+        <!-- ============================================================ -->
+        <!-- 右侧主内容 -->
+        <!-- ============================================================ -->
+        <main class="main-content">
+
+            <!-- ==================== HEADER ==================== -->
+            <header class="report-header">
+                <h1>
+                    漫威宇宙的“伤亡”与“票房”经济学
+                    <small>死的人越多，票房越高吗？</small>
+                </h1>
+                <div class="sub">🎬 基于 23 部 MCU 电影数据的实证检验</div>
+                <div class="meta">
+                    <span>📁 样本：23 部电影（Phase 1–3）</span>
+                    <span>📈 分析工具：柱状图 · 散点图 · 气泡图</span>
+                    <span>🧠 核心问题：高伤亡是否必然带来高票房？口碑是否为影响票房的关键？</span>
+                </div>
+            </header>
+
+            <!-- ============================================================ -->
+            <!-- SECTION 1 : 研究概述 -->
+            <!-- ============================================================ -->
+            <section class="section" id="sec-overview">
+                <div class="section-title">
+                    <span class="num">01</span> 研究概述
+                </div>
+                <div class="section-desc">
+                    <strong>行业直觉</strong> —— 一部电影里牺牲的知名角色越多，剧情越「虐」，热度和票房就越高。
+                    《复联 3》《复联 4》全网刷屏，更强化了「发刀子 = 票房密码」的潜在共识。
+                    但直觉是否经得起数据检验？本次研究基于 MCU 前三个阶段共 23 部影片的完整数据，通过可视化方法逐一验证。
+                </div>
+                <div class="section-desc" style="border-left-color:#b8cef0;">
+                    <strong>研究问题</strong><br>
+                    1. 高伤亡是否必然带来高票房？<br>
+                    2. 口碑（烂番茄评分）是否为影响票房的核心因素？
+                </div>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- SECTION 2 : 死亡人数与票房（双柱状图） -->
+            <!-- ============================================================ -->
+            <section class="section" id="sec-death-vs-box">
+                <div class="section-title">
+                    <span class="num">02</span> 死亡人数与票房
+                </div>
+                <div class="section-desc">
+                    通过两个横向柱状图分别展示各电影的全球票房和主要人物死亡数量，便于直观对比两者之间的关系。
+                </div>
+
+                <div class="dual-chart-grid">
+                    <!-- 票房柱状图 -->
+                    <div class="chart-box">
+                        <div class="chart-title">
+                            <span>🎬 各电影全球票房对比</span>
+                            <span class="tag">单位：百万美元</span>
+                        </div>
+                        <div class="chart-container" id="boxOfficeChart"></div>
+                    </div>
+                    <!-- 死亡人数柱状图 -->
+                    <div class="chart-box">
+                        <div class="chart-title">
+                            <span>💀 各电影主要人物死亡数量对比</span>
+                            <span class="tag">单位：人</span>
+                        </div>
+                        <div class="chart-container" id="deathChart"></div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 6px; font-size: 13px; color: #4a5f7a; text-align: center;">
+                    ⚡ 仅 <strong>Movie_2</strong> 呈现高票房-高死亡人数特征
+                </div>
+
+                <div class="insight-box">
+                    <strong>📌 关键发现</strong><br>
+                    <span style="display:block; margin-top:4px; font-weight:500;">高伤亡 ≠ 高票房</span>
+                    <ul>
+                        <li>仅 <strong>Movie_2</strong> 呈现高票房-高死亡人数特征</li>
+                        <li>死亡人数达峰值（9人）—— 票房两极分化严重</li>
+                        <li>死亡人数 ≥ 7 的影片 —— 票房没有随人数上涨同步升高</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- SECTION 3 : 分阶段深度分析 -->
+            <!-- ============================================================ -->
+            <section class="section" id="sec-phase">
+                <div class="section-title">
+                    <span class="num">03</span> 分阶段深度分析
+                </div>
+                <div class="section-desc">
+                    为避免样本整体性掩盖阶段性差异，将电影按 <strong>Phase 1、Phase 2、Phase 3</strong> 拆分，分别观察每个阶段内部死亡人数与票房的关系。
+                    下方三个图表分别展示各阶段的死亡人数与票房分布，虚线为线性趋势线。
+                </div>
+
+                <!-- 阶段卡片 -->
+                <div class="phase-cards">
+                    <div class="card p1">
+                        <div class="pname" style="color:#1f77b4;">Phase 1</div>
+                        <div class="psub">初代英雄阶段</div>
+                        <div class="pfind">死亡数与票房<br><span>不存在正向关系</span></div>
+                    </div>
+                    <div class="card p2">
+                        <div class="pname" style="color:#ff7f0e;">Phase 2</div>
+                        <div class="psub">宇宙扩张阶段</div>
+                        <div class="pfind">死亡数与票房<br><span>不存在正向关系</span></div>
+                    </div>
+                    <div class="card p3">
+                        <div class="pname" style="color:#d62728;">Phase 3</div>
+                        <div class="psub">终局决战阶段</div>
+                        <div class="pfind">死亡数与票房<br><span>不存在正向关系</span></div>
+                    </div>
+                </div>
+
+                <!-- 三个独立图表 -->
+                <div class="phase-grid">
+                    <div class="mini-chart">
+                        <div class="phase-label" style="color:#1f77b4;">Phase 1</div>
+                        <div class="phase-sub">初代英雄阶段</div>
+                        <div class="mini-chart-container" id="phaseScatter1"></div>
+                    </div>
+                    <div class="mini-chart">
+                        <div class="phase-label" style="color:#ff7f0e;">Phase 2</div>
+                        <div class="phase-sub">宇宙扩张阶段</div>
+                        <div class="mini-chart-container" id="phaseScatter2"></div>
+                    </div>
+                    <div class="mini-chart">
+                        <div class="phase-label" style="color:#d62728;">Phase 3</div>
+                        <div class="phase-sub">终局决战阶段</div>
+                        <div class="mini-chart-container" id="phaseScatter3"></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 10px 20px; padding: 2px 4px 0 4px; font-size: 14px; color: #3e5a7a;">
+                    <span>💡 悬停数据点查看影片详情</span>
+                    <span style="margin-left: auto;">虚线 = 线性趋势线</span>
+                </div>
+
+                <div class="insight-box blue">
+                    <strong>📌 关键发现</strong><br>
+                    “不管是初代英雄阶段、宇宙扩张阶段，还是终局决战阶段，每一段里，角色死亡数量和票房都不存在正向上涨关系。”
+                </div>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- SECTION 4 : 口碑评分与票房的正相关（散点图，保留趋势线无r值） -->
+            <!-- ============================================================ -->
+            <section class="section" id="sec-reputation">
+                <div class="section-title">
+                    <span class="num">04</span> 口碑评分与票房的正相关
+                </div>
+                <div class="section-desc">
+                    既然角色伤亡无法解释票房差异，那什么才是核心影响变量？我们将横轴切换为 <strong>烂番茄口碑评分</strong>，观察其与票房的关系。
+                    评分与票房呈明显正相关，虚线为线性趋势线。
+                </div>
+
+                <div class="chart-box">
+                    <div class="chart-title">
+                        <span>📈 漫威电影评分与票房的关系</span>
+                        <span class="tag">虚线 = 线性趋势线</span>
+                    </div>
+                    <div class="chart-container" id="scatterChart"></div>
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 10px 20px; padding: 2px 4px 0 4px; font-size: 14px; color: #3e5a7a;">
+                    <span>🔵 数据点（评分 vs 票房）</span>
+                    <span style="margin-left: auto;">💡 悬停点查看具体数值</span>
+                </div>
+
+                <div class="insight-box teal">
+                    <strong>📌 关键发现</strong><br>
+                    “口碑评分越高，票房同步正向增长”<br>
+                    <span style="color:#4a5f7a; font-size:14px;">➜ 评分与票房呈现明显正相关，内容质量是驱动票房的核心因素，外在形式（死亡人数）无法替代。</span>
+                </div>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- SECTION 5 : MCU电影评分交互看板（气泡图） -->
+            <!-- ============================================================ -->
+            <section class="section" id="sec-dashboard">
+                <div class="section-title">
+                    <span class="num">05</span> MCU电影评分交互看板
+                </div>
+                <div class="section-desc">
+                    本看板提供 <strong>烂番茄评分、全球票房、死亡人数</strong> 三维数据的交互式探索。气泡大小代表死亡人数，颜色区分阶段，悬停可查看完整影片信息，供读者自由发现规律。
+                </div>
+
+                <div class="chart-box">
+                    <div class="chart-title">
+                        <span>🍅 烂番茄评分 · 全球票房 · 死亡人数</span>
+                        <span class="tag">气泡大小 = 死亡人数（6~28px）</span>
+                    </div>
+                    <div class="chart-container" id="bubbleChart"></div>
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 10px 20px; padding: 4px 4px 0 4px; font-size: 14px; color: #3e5a7a;">
+                    <span>🔵 Phase 1</span>
+                    <span>🟠 Phase 2</span>
+                    <span>🔴 Phase 3</span>
+                    <span style="margin-left: auto;">💡 悬停气泡查看完整信息</span>
+                </div>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- SECTION 6 : 核心结论 -->
+            <!-- ============================================================ -->
+            <section class="section" id="sec-conclusion">
+                <div class="section-title">
+                    <span class="num">06</span> 核心结论
+                </div>
+                <div class="section-desc" style="border-left-color:#0b1a33;">
+                    综合全部可视化图表，我们得出以下核心结论：
+                </div>
+
+                <div class="conclusion-grid">
+                    <div class="conclusion-card highlight">
+                        <div class="label">🎯 结论 1</div>
+                        <div class="value">高伤亡 ≠ 高票房</div>
+                        <div class="note">
+                            角色牺牲只是完善剧情的叙事工具，不是拉升票房的营销捷径。
+                            单纯堆砌悲情桥段不能带来长久的商业收益。
+                        </div>
+                    </div>
+                    <div class="conclusion-card">
+                        <div class="label">🎯 结论 2</div>
+                        <div class="value">口碑才是硬通货</div>
+                        <div class="note">
+                            烂番茄评分与全球票房呈明显正相关。打磨优质剧本、塑造立体人物、收获良好口碑，才是 IP 长期吸金的核心。
+                        </div>
+                    </div>
+                    <div class="conclusion-card" style="grid-column: 1 / -1; background: #f0f4fc; border-color: #b8cef0;">
+                        <div class="label">📌 最终启示</div>
+                        <div class="value" style="font-size:16px;">内容价值永远大于外在表达技巧</div>
+                        <div class="note">
+                            观众愿意走进影院买单的是<strong>完整优质的故事</strong>，而非刻意制造的悲剧噱头。
+                            靠死亡制造冲突很难稳定变现，唯有能够给观众带来情感共鸣、传递深度思考的内容内核，才是电影实现长期大范围传播的根本关键。
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- FOOTER (保留双击666小组) -->
+            <!-- ============================================================ -->
+            <footer class="report-footer">
+                <span class="source">📁 数据来源：MCU 前三个阶段 23 部影片</span>
+                <span class="team">✍️ 双击666小组</span>
+            </footer>
+
+        </main>
+        <!-- /main-content -->
+
+    </div>
+    <!-- /app -->
+
+    <!-- ============================================================ -->
+    <!-- SCRIPT : ECharts 图表渲染 + 目录高亮 -->
+    <!-- ============================================================ -->
     <script>
         (function() {
-            // ----- 原始数据（与图一完全一致） -----
-            const movies = [{
-                name: 'Movie_1',
-                phase: 'Phase 1',
-                budget: 228,
-                boxOffice: 2201,
-                rotten: 89,
-                deaths: 3
-            }, {
-                name: 'Movie_2',
-                phase: 'Phase 1',
-                budget: 258,
-                boxOffice: 2348,
-                rotten: 89,
-                deaths: 9
-            }, {
-                name: 'Movie_3',
-                phase: 'Phase 1',
-                budget: 278,
-                boxOffice: 350,
-                rotten: 76,
-                deaths: 7
-            }, {
-                name: 'Movie_4',
-                phase: 'Phase 1',
-                budget: 184,
-                boxOffice: 984,
-                rotten: 82,
-                deaths: 0
-            }, {
-                name: 'Movie_5',
-                phase: 'Phase 1',
-                budget: 135,
-                boxOffice: 1016,
-                rotten: 74,
-                deaths: 9
-            }, {
-                name: 'Movie_6',
-                phase: 'Phase 1',
-                budget: 349,
-                boxOffice: 1769,
-                rotten: 80,
-                deaths: 0
-            }, {
-                name: 'Movie_7',
-                phase: 'Phase 2',
-                budget: 338,
-                boxOffice: 748,
-                rotten: 73,
-                deaths: 3
-            }, {
-                name: 'Movie_8',
-                phase: 'Phase 2',
-                budget: 326,
-                boxOffice: 1180,
-                rotten: 61,
-                deaths: 7
-            }, {
-                name: 'Movie_9',
-                phase: 'Phase 2',
-                budget: 224,
-                boxOffice: 787,
-                rotten: 70,
-                deaths: 4
-            }, {
-                name: 'Movie_10',
-                phase: 'Phase 2',
-                budget: 262,
-                boxOffice: 2123,
-                rotten: 93,
-                deaths: 1
-            }, {
-                name: 'Movie_11',
-                phase: 'Phase 2',
-                budget: 231,
-                boxOffice: 2381,
-                rotten: 93,
-                deaths: 5
-            }, {
-                name: 'Movie_12',
-                phase: 'Phase 2',
-                budget: 132,
-                boxOffice: 2442,
-                rotten: 77,
-                deaths: 4
-            }, {
-                name: 'Movie_13',
-                phase: 'Phase 3',
-                budget: 310,
-                boxOffice: 1874,
-                rotten: 89,
-                deaths: 1
-            }, {
-                name: 'Movie_14',
-                phase: 'Phase 3',
-                budget: 152,
-                boxOffice: 549,
-                rotten: 74,
-                deaths: 2
-            }, {
-                name: 'Movie_15',
-                phase: 'Phase 3',
-                budget: 182,
-                boxOffice: 973,
-                rotten: 86,
-                deaths: 8
-            }, {
-                name: 'Movie_16',
-                phase: 'Phase 3',
-                budget: 294,
-                boxOffice: 737,
-                rotten: 93,
-                deaths: 6
-            }, {
-                name: 'Movie_17',
-                phase: 'Phase 3',
-                budget: 331,
-                boxOffice: 2465,
-                rotten: 92,
-                deaths: 6
-            }, {
-                name: 'Movie_18',
-                phase: 'Phase 3',
-                budget: 331,
-                boxOffice: 1070,
-                rotten: 83,
-                deaths: 5
-            }, {
-                name: 'Movie_19',
-                phase: 'Phase 3',
-                budget: 212,
-                boxOffice: 567,
-                rotten: 74,
-                deaths: 7
-            }, {
-                name: 'Movie_20',
-                phase: 'Phase 3',
-                budget: 274,
-                boxOffice: 2284,
-                rotten: 89,
-                deaths: 3
-            }, {
-                name: 'Movie_21',
-                phase: 'Phase 3',
-                budget: 214,
-                boxOffice: 1377,
-                rotten: 76,
-                deaths: 7
-            }, {
-                name: 'Movie_22',
-                phase: 'Phase 3',
-                budget: 207,
-                boxOffice: 535,
-                rotten: 64,
-                deaths: 3
-            }, {
-                name: 'Movie_23',
-                phase: 'Phase 3',
-                budget: 330,
-                boxOffice: 688,
-                rotten: 88,
-                deaths: 7
-            }];
 
-            // ----- 颜色映射（蓝/橙/红） -----
-            const phaseColorMap = {
-                'Phase 1': '#1f77b4',
-                'Phase 2': '#ff7f0e',
-                'Phase 3': '#d62728'
+            // =============================================================
+            // 1. 数据（MCU 23部电影）
+            // =============================================================
+            const movies = [
+                // Phase 1
+                { name: 'Movie_1', phase: 'Phase 1', budget: 228, boxOffice: 2201, rotten: 89, deaths: 3 },
+                { name: 'Movie_2', phase: 'Phase 1', budget: 258, boxOffice: 2348, rotten: 89, deaths: 9 },
+                { name: 'Movie_3', phase: 'Phase 1', budget: 278, boxOffice: 350, rotten: 76, deaths: 7 },
+                { name: 'Movie_4', phase: 'Phase 1', budget: 184, boxOffice: 984, rotten: 82, deaths: 0 },
+                { name: 'Movie_5', phase: 'Phase 1', budget: 135, boxOffice: 1016, rotten: 74, deaths: 9 },
+                { name: 'Movie_6', phase: 'Phase 1', budget: 349, boxOffice: 1769, rotten: 80, deaths: 0 },
+                // Phase 2
+                { name: 'Movie_7', phase: 'Phase 2', budget: 338, boxOffice: 748, rotten: 73, deaths: 3 },
+                { name: 'Movie_8', phase: 'Phase 2', budget: 326, boxOffice: 1180, rotten: 61, deaths: 7 },
+                { name: 'Movie_9', phase: 'Phase 2', budget: 224, boxOffice: 787, rotten: 70, deaths: 4 },
+                { name: 'Movie_10', phase: 'Phase 2', budget: 262, boxOffice: 2123, rotten: 93, deaths: 1 },
+                { name: 'Movie_11', phase: 'Phase 2', budget: 231, boxOffice: 2381, rotten: 93, deaths: 5 },
+                { name: 'Movie_12', phase: 'Phase 2', budget: 132, boxOffice: 2442, rotten: 77, deaths: 4 },
+                // Phase 3
+                { name: 'Movie_13', phase: 'Phase 3', budget: 310, boxOffice: 1874, rotten: 89, deaths: 1 },
+                { name: 'Movie_14', phase: 'Phase 3', budget: 152, boxOffice: 549, rotten: 74, deaths: 2 },
+                { name: 'Movie_15', phase: 'Phase 3', budget: 182, boxOffice: 973, rotten: 86, deaths: 8 },
+                { name: 'Movie_16', phase: 'Phase 3', budget: 294, boxOffice: 737, rotten: 93, deaths: 6 },
+                { name: 'Movie_17', phase: 'Phase 3', budget: 331, boxOffice: 2465, rotten: 92, deaths: 6 },
+                { name: 'Movie_18', phase: 'Phase 3', budget: 331, boxOffice: 1070, rotten: 83, deaths: 5 },
+                { name: 'Movie_19', phase: 'Phase 3', budget: 212, boxOffice: 567, rotten: 74, deaths: 7 },
+                { name: 'Movie_20', phase: 'Phase 3', budget: 274, boxOffice: 2284, rotten: 89, deaths: 3 },
+                { name: 'Movie_21', phase: 'Phase 3', budget: 214, boxOffice: 1377, rotten: 76, deaths: 7 },
+                { name: 'Movie_22', phase: 'Phase 3', budget: 207, boxOffice: 535, rotten: 64, deaths: 3 },
+                { name: 'Movie_23', phase: 'Phase 3', budget: 330, boxOffice: 688, rotten: 88, deaths: 7 }
+            ];
+
+            // 提取数字用于排序
+            function extractNumber(name) {
+                return parseInt(name.split('_')[1]);
+            }
+
+            // 按名称数字升序排列（Movie_1, Movie_2, ..., Movie_23）
+            const sortedByName = [...movies].sort((a, b) => extractNumber(a.name) - extractNumber(b.name));
+
+            // =============================================================
+            // 2. 票房柱状图（按Movie顺序，指定蓝色渐变色，其他灰色）
+            // =============================================================
+            // 指定高票房影片列表
+            const highBoxMovies = ['Movie_2', 'Movie_11', 'Movie_12', 'Movie_17', 'Movie_20'];
+            // 获取票房最大值和最小值用于颜色映射
+            const boxValues = sortedByName.map(m => m.boxOffice);
+            const maxBox = Math.max(...boxValues);
+            const minBox = Math.min(...boxValues);
+
+            function getBoxColor(movie) {
+                if (highBoxMovies.includes(movie.name)) {
+                    // 蓝色渐变：票房越高越深
+                    const intensity = 0.4 + (movie.boxOffice - minBox) / (maxBox - minBox) * 0.6;
+                    return `rgba(30, 80, 200, ${intensity})`; // 蓝色系
+                } else {
+                    return '#b0b8c4'; // 灰色
+                }
+            }
+
+            const domBox = document.getElementById('boxOfficeChart');
+            const chartBox = echarts.init(domBox);
+
+            const boxData = sortedByName.map(m => ({
+                value: m.boxOffice,
+                name: m.name,
+                phase: m.phase,
+                itemStyle: {
+                    color: getBoxColor(m),
+                    borderRadius: [0, 4, 4, 0]
+                }
+            }));
+
+            const boxOption = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    backgroundColor: 'rgba(255,255,255,0.96)',
+                    borderColor: '#bcc9db',
+                    borderWidth: 1,
+                    borderRadius: 10,
+                    padding: [10, 14],
+                    formatter: function(params) {
+                        const p = params[0];
+                        const data = p.data;
+                        return `
+                            <div style="font-weight:600;font-size:14px;">${data.name}</div>
+                            <div>💰 全球票房：$${data.value}M</div>
+                            <div>📌 阶段：${data.phase}</div>
+                        `;
+                    }
+                },
+                grid: {
+                    left: 70,
+                    right: 30,
+                    top: 10,
+                    bottom: 10
+                },
+                xAxis: {
+                    type: 'value',
+                    name: '票房 (百万美元)',
+                    nameLocation: 'middle',
+                    nameGap: 25,
+                    nameTextStyle: { fontSize: 11, color: '#3f5a75' },
+                    axisLabel: { fontSize: 10, color: '#3f5a75', formatter: function(val) { return val + 'M'; } },
+                    splitLine: { lineStyle: { color: '#eef3f8', type: 'dashed' } }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: sortedByName.map(d => d.name),
+                    axisLabel: { fontSize: 10, color: '#1a334d' },
+                    axisLine: { lineStyle: { color: '#cbd8e6' } }
+                },
+                series: [{
+                    type: 'bar',
+                    data: boxData,
+                    barWidth: 10,
+                    label: {
+                        show: true,
+                        position: 'right',
+                        formatter: function(params) {
+                            return params.value + 'M';
+                        },
+                        fontSize: 9,
+                        color: '#3f5a75'
+                    }
+                }]
             };
 
-            // 按 Phase 分组
-            const phaseGroups = {};
+            chartBox.setOption(boxOption);
+
+            // =============================================================
+            // 3. 死亡人数柱状图（按Movie顺序，指定红色渐变色，其他灰色）
+            // =============================================================
+            const highDeathMovies = ['Movie_2', 'Movie_3', 'Movie_5', 'Movie_8', 'Movie_15', 'Movie_19', 'Movie_21', 'Movie_23'];
+            const deathValues = sortedByName.map(m => m.deaths);
+            const maxDeath = Math.max(...deathValues);
+            const minDeath = Math.min(...deathValues);
+
+            function getDeathColor(movie) {
+                if (highDeathMovies.includes(movie.name)) {
+                    // 红色渐变：死亡越多越深
+                    const intensity = 0.4 + (movie.deaths - minDeath) / (maxDeath - minDeath) * 0.6;
+                    return `rgba(200, 30, 30, ${intensity})`; // 红色系
+                } else {
+                    return '#b0b8c4'; // 灰色
+                }
+            }
+
+            const domDeath = document.getElementById('deathChart');
+            const chartDeath = echarts.init(domDeath);
+
+            const deathData = sortedByName.map(m => ({
+                value: m.deaths,
+                name: m.name,
+                phase: m.phase,
+                itemStyle: {
+                    color: getDeathColor(m),
+                    borderRadius: [0, 4, 4, 0]
+                }
+            }));
+
+            const deathOption = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    backgroundColor: 'rgba(255,255,255,0.96)',
+                    borderColor: '#bcc9db',
+                    borderWidth: 1,
+                    borderRadius: 10,
+                    padding: [10, 14],
+                    formatter: function(params) {
+                        const p = params[0];
+                        const data = p.data;
+                        return `
+                            <div style="font-weight:600;font-size:14px;">${data.name}</div>
+                            <div>💀 死亡人数：${data.value} 人</div>
+                            <div>📌 阶段：${data.phase}</div>
+                        `;
+                    }
+                },
+                grid: {
+                    left: 70,
+                    right: 30,
+                    top: 10,
+                    bottom: 10
+                },
+                xAxis: {
+                    type: 'value',
+                    name: '死亡人数 (人)',
+                    nameLocation: 'middle',
+                    nameGap: 25,
+                    nameTextStyle: { fontSize: 11, color: '#3f5a75' },
+                    axisLabel: { fontSize: 10, color: '#3f5a75' },
+                    splitLine: { lineStyle: { color: '#eef3f8', type: 'dashed' } }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: sortedByName.map(d => d.name),
+                    axisLabel: { fontSize: 10, color: '#1a334d' },
+                    axisLine: { lineStyle: { color: '#cbd8e6' } }
+                },
+                series: [{
+                    type: 'bar',
+                    data: deathData,
+                    barWidth: 10,
+                    label: {
+                        show: true,
+                        position: 'right',
+                        formatter: function(params) {
+                            return params.value + '人';
+                        },
+                        fontSize: 9,
+                        color: '#3f5a75'
+                    }
+                }]
+            };
+
+            chartDeath.setOption(deathOption);
+
+            // =============================================================
+            // 4. 气泡图 (交互看板)
+            // =============================================================
+            const groups = {};
             movies.forEach(m => {
-                if (!phaseGroups[m.phase]) phaseGroups[m.phase] = [];
-                phaseGroups[m.phase].push(m);
+                if (!groups[m.phase]) groups[m.phase] = [];
+                groups[m.phase].push(m);
             });
 
-            // 构建 ECharts 系列数据
-            const seriesData = [];
-            Object.keys(phaseGroups).forEach(phase => {
-                const items = phaseGroups[phase];
+            const seriesBubble = [];
+            Object.keys(groups).forEach(phase => {
+                const items = groups[phase];
                 const data = items.map(m => {
-                    // 气泡大小：线性映射 15~50，死亡数0->15, 9->50，兼顾清晰度与重叠控制
-                    const minSize = 15;
-                    const maxSize = 50;
+                    const minSize = 6;
+                    const maxSize = 28;
                     const size = minSize + (m.deaths / 9) * (maxSize - minSize);
                     return {
                         value: [m.rotten, m.boxOffice],
@@ -290,179 +1066,444 @@
                         phase: m.phase
                     };
                 });
-                seriesData.push({
+                seriesBubble.push({
                     name: phase,
                     type: 'scatter',
                     data: data,
-                    symbolSize: function(value, params) {
-                        return params.data.symbolSize || 15;
+                    symbolSize: function(val, params) {
+                        return params.data.symbolSize || 8;
                     },
                     itemStyle: {
-                        color: phaseColorMap[phase],
-                        opacity: 0.75,
+                        color: {
+                            'Phase 1': '#1f77b4',
+                            'Phase 2': '#ff7f0e',
+                            'Phase 3': '#d62728'
+                        } [phase],
+                        opacity: 0.78,
                         borderColor: '#ffffff',
                         borderWidth: 1.2,
-                        shadowBlur: 3,
-                        shadowColor: 'rgba(0,0,0,0.08)'
+                        shadowBlur: 4,
+                        shadowColor: 'rgba(0,0,0,0.06)'
                     },
                     emphasis: {
                         itemStyle: {
                             opacity: 1,
                             borderWidth: 2.5,
-                            borderColor: '#222',
-                            shadowBlur: 8,
-                            shadowColor: 'rgba(0,0,0,0.2)'
+                            borderColor: '#0b1a33',
+                            shadowBlur: 10,
+                            shadowColor: 'rgba(0,0,0,0.15)'
                         }
                     }
                 });
             });
 
-            // ----- 初始化 ECharts -----
-            const dom = document.getElementById('bubbleChart');
-            const chart = echarts.init(dom);
+            const domBubble = document.getElementById('bubbleChart');
+            const chartBubble = echarts.init(domBubble);
 
-            // ----- 配置项（坐标轴不变） -----
-            const option = {
-                title: {
-                    text: 'MCU电影烂番茄评分与全球票房关系',
-                    subtext: '气泡大小 = 15 + (死亡数/9)×35  (悬停查看完整信息)',
-                    left: 'center',
-                    top: 6,
-                    textStyle: {
-                        fontSize: 20,
-                        fontWeight: 600,
-                        color: '#1e293b',
-                        fontFamily: '"Segoe UI","PingFang SC",sans-serif'
-                    },
-                    subtextStyle: {
-                        fontSize: 13,
-                        color: '#64748b',
-                        fontWeight: 400
-                    }
-                },
+            const optionBubble = {
                 tooltip: {
                     trigger: 'item',
-                    backgroundColor: 'rgba(255,255,255,0.96)',
-                    borderColor: '#d0d5dd',
+                    backgroundColor: 'rgba(255,255,255,0.97)',
+                    borderColor: '#bcc9db',
                     borderWidth: 1,
-                    borderRadius: 10,
-                    padding: [14, 18],
-                    textStyle: {
-                        fontSize: 13,
-                        color: '#0f172a',
-                        lineHeight: 1.7
-                    },
+                    borderRadius: 12,
+                    padding: [16, 20],
+                    textStyle: { fontSize: 13, color: '#172b3a', lineHeight: 1.7 },
                     formatter: function(params) {
                         const d = params.data;
-                        if (!d || !d.movieName) return '数据加载中…';
+                        if (!d || !d.movieName) return '加载中…';
                         return `
-                            <div style="font-weight:600;font-size:15px;margin-bottom:6px;color:#0f172a;">🎬 ${d.movieName}</div>
-                            <div style="display:grid;grid-template-columns:auto 1fr;gap:2px 14px;margin-top:4px;">
-                                <span style="color:#475569;">📊 阶段</span><span style="font-weight:500;">${d.phase}</span>
-                                <span style="color:#475569;">💰 制作成本</span><span style="font-weight:500;">$${d.budget}M</span>
-                                <span style="color:#475569;">🏆 全球票房</span><span style="font-weight:500;">$${d.boxOffice}M</span>
-                                <span style="color:#475569;">💀 死亡角色数</span><span style="font-weight:500;">${d.deaths}</span>
-                                <span style="color:#475569;">🍅 烂番茄评分</span><span style="font-weight:500;">${d.rotten}%</span>
+                            <div style="font-weight:600;font-size:16px;margin-bottom:6px;color:#0b1a33;">🎬 ${d.movieName}</div>
+                            <div style="display:grid;grid-template-columns:auto 1fr;gap:3px 18px;">
+                                <span style="color:#3d5a78;">📌 阶段</span><span style="font-weight:500;">${d.phase}</span>
+                                <span style="color:#3d5a78;">💰 预算</span><span style="font-weight:500;">$${d.budget}M</span>
+                                <span style="color:#3d5a78;">🏆 全球票房</span><span style="font-weight:500;">$${d.boxOffice}M</span>
+                                <span style="color:#3d5a78;">💀 死亡数</span><span style="font-weight:500;color:#b22234;">${d.deaths} 人</span>
+                                <span style="color:#3d5a78;">🍅 烂番茄</span><span style="font-weight:500;">${d.rotten}%</span>
                             </div>
                         `;
                     },
-                    extraCssText: 'box-shadow: 0 8px 24px rgba(0,0,0,0.12);'
+                    extraCssText: 'box-shadow: 0 10px 28px rgba(0,0,0,0.10);'
                 },
-                grid: {
-                    left: 70,
-                    right: 45,
-                    top: 90,
-                    bottom: 55
-                },
+                grid: { left: 68, right: 42, top: 26, bottom: 44 },
                 xAxis: {
                     name: '烂番茄评分',
                     nameLocation: 'center',
-                    nameGap: 32,
-                    nameTextStyle: {
-                        fontSize: 14,
-                        fontWeight: 500,
-                        color: '#334155'
-                    },
-                    min: 60,
+                    nameGap: 30,
+                    nameTextStyle: { fontSize: 13, fontWeight: 500, color: '#1f3a57' },
+                    min: 58,
                     max: 100,
                     interval: 5,
-                    axisLine: {
-                        lineStyle: { color: '#cbd5e1' }
-                    },
-                    axisTick: {
-                        alignWithLabel: true
-                    },
-                    splitLine: {
-                        show: true,
-                        lineStyle: { color: '#f1f5f9', type: 'dashed' }
-                    },
-                    axisLabel: {
-                        fontSize: 12,
-                        color: '#64748b',
-                        fontWeight: 400
-                    }
+                    axisLine: { lineStyle: { color: '#cbd8e6' } },
+                    axisTick: { alignWithLabel: true },
+                    splitLine: { show: true, lineStyle: { color: '#eef3f8', type: 'dashed' } },
+                    axisLabel: { fontSize: 12, color: '#3f5a75' }
                 },
                 yAxis: {
-                    name: '全球票房（百万）',
+                    name: '全球票房 (百万美元)',
                     nameLocation: 'center',
-                    nameGap: 50,
-                    nameTextStyle: {
-                        fontSize: 14,
-                        fontWeight: 500,
-                        color: '#334155'
-                    },
+                    nameGap: 46,
+                    nameTextStyle: { fontSize: 13, fontWeight: 500, color: '#1f3a57' },
                     min: 0,
                     max: 2600,
                     interval: 200,
-                    axisLine: {
-                        lineStyle: { color: '#cbd5e1' }
-                    },
-                    splitLine: {
-                        show: true,
-                        lineStyle: { color: '#f1f5f9', type: 'dashed' }
-                    },
-                    axisLabel: {
-                        fontSize: 12,
-                        color: '#64748b',
-                        fontWeight: 400,
-                        formatter: function(val) {
-                            return val + 'M';
-                        }
-                    }
+                    axisLine: { lineStyle: { color: '#cbd8e6' } },
+                    splitLine: { show: true, lineStyle: { color: '#eef3f8', type: 'dashed' } },
+                    axisLabel: { fontSize: 12, color: '#3f5a75', formatter: function(val) { return val + 'M'; } }
                 },
-                series: seriesData,
+                series: seriesBubble,
                 legend: {
                     data: ['Phase 1', 'Phase 2', 'Phase 3'],
-                    top: 52,
+                    top: 0,
                     left: 'center',
                     icon: 'circle',
                     itemWidth: 14,
                     itemHeight: 14,
-                    textStyle: {
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: '#1e293b',
-                        padding: [0, 8, 0, 4]
-                    },
+                    textStyle: { fontSize: 12, fontWeight: 500, color: '#1a334d', padding: [0, 12, 0, 4] },
                     itemGap: 28
                 },
-                animationDuration: 800,
+                animationDuration: 700,
                 animationEasing: 'cubicOut'
             };
 
-            chart.setOption(option);
+            chartBubble.setOption(optionBubble);
 
-            // ----- 自适应布局 -----
-            window.addEventListener('resize', function() {
-                chart.resize();
-            });
-
-            if (window.ResizeObserver) {
-                const ro = new ResizeObserver(() => { chart.resize(); });
-                ro.observe(dom);
+            // =============================================================
+            // 5. 三个独立散点图 - 各阶段死亡人数 vs 票房
+            // =============================================================
+            function calcRegression(data) {
+                const n = data.length;
+                let sumX = 0,
+                    sumY = 0,
+                    sumXY = 0,
+                    sumX2 = 0;
+                for (let [x, y] of data) {
+                    sumX += x;
+                    sumY += y;
+                    sumXY += x * y;
+                    sumX2 += x * x;
+                }
+                const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / n;
+                return { slope, intercept };
             }
 
-            window.__chart = chart;
+            const phaseNames = ['Phase 1', 'Phase 2', 'Phase 3'];
+            const phaseColors = ['#1f77b4', '#ff7f0e', '#d62728'];
+            const containerIds = ['phaseScatter1', 'phaseScatter2', 'phaseScatter3'];
+
+            phaseNames.forEach((phase, idx) => {
+                const items = movies.filter(m => m.phase === phase);
+                const dataPoints = items.map(m => ({
+                    value: [m.deaths, m.boxOffice],
+                    movieName: m.name,
+                    deaths: m.deaths,
+                    boxOffice: m.boxOffice,
+                    phase: m.phase
+                }));
+
+                const rawPairs = items.map(m => [m.deaths, m.boxOffice]);
+                const { slope, intercept } = calcRegression(rawPairs);
+
+                const xMin = -1,
+                    xMax = 10;
+                const yMin = intercept + slope * xMin;
+                const yMax = intercept + slope * xMax;
+
+                const dom = document.getElementById(containerIds[idx]);
+                const chart = echarts.init(dom);
+
+                const option = {
+                    tooltip: {
+                        trigger: 'item',
+                        backgroundColor: 'rgba(255,255,255,0.97)',
+                        borderColor: '#bcc9db',
+                        borderWidth: 1,
+                        borderRadius: 10,
+                        padding: [10, 14],
+                        textStyle: { fontSize: 12, color: '#172b3a', lineHeight: 1.6 },
+                        formatter: function(params) {
+                            const d = params.data;
+                            if (!d || d.value === undefined) return '加载中…';
+                            return `
+                                <div style="font-weight:600;font-size:14px;margin-bottom:2px;">🎬 ${d.movieName}</div>
+                                <div>💀 死亡人数：${d.deaths} 人</div>
+                                <div>💰 票房：$${d.boxOffice}M</div>
+                            `;
+                        },
+                        extraCssText: 'box-shadow: 0 8px 20px rgba(0,0,0,0.08);'
+                    },
+                    grid: {
+                        left: 46,
+                        right: 14,
+                        top: 14,
+                        bottom: 24
+                    },
+                    xAxis: {
+                        name: '死亡人数',
+                        nameLocation: 'center',
+                        nameGap: 18,
+                        nameTextStyle: { fontSize: 11, fontWeight: 500, color: '#3f5a75' },
+                        min: -1,
+                        max: 10,
+                        interval: 2,
+                        axisLine: { lineStyle: { color: '#cbd8e6' } },
+                        splitLine: { show: true, lineStyle: { color: '#eef3f8', type: 'dashed' } },
+                        axisLabel: { fontSize: 10, color: '#3f5a75' }
+                    },
+                    yAxis: {
+                        name: '票房 (百万$)',
+                        nameLocation: 'center',
+                        nameGap: 26,
+                        nameTextStyle: { fontSize: 11, fontWeight: 500, color: '#3f5a75' },
+                        min: 0,
+                        max: 2600,
+                        interval: 500,
+                        axisLine: { lineStyle: { color: '#cbd8e6' } },
+                        splitLine: { show: true, lineStyle: { color: '#eef3f8', type: 'dashed' } },
+                        axisLabel: { fontSize: 10, color: '#3f5a75', formatter: function(val) { return val + 'M'; } }
+                    },
+                    series: [{
+                        type: 'scatter',
+                        data: dataPoints,
+                        symbolSize: 26,
+                        itemStyle: {
+                            color: phaseColors[idx],
+                            opacity: 0.85,
+                            borderColor: '#ffffff',
+                            borderWidth: 1.5
+                        },
+                        emphasis: {
+                            itemStyle: {
+                                opacity: 1,
+                                borderWidth: 3,
+                                borderColor: '#0b1a33'
+                            }
+                        },
+                        markLine: {
+                            silent: true,
+                            symbol: ['none', 'none'],
+                            data: [
+                                [
+                                    { coord: [xMin, yMin] },
+                                    { coord: [xMax, yMax] }
+                                ]
+                            ],
+                            label: { show: false },
+                            lineStyle: {
+                                color: phaseColors[idx],
+                                type: 'dashed',
+                                width: 2
+                            }
+                        }
+                    }],
+                    animationDuration: 500,
+                    animationEasing: 'cubicOut'
+                };
+
+                chart.setOption(option);
+                window['chartPhase' + (idx + 1)] = chart;
+            });
+
+            // =============================================================
+            // 6. 口碑评分与票房散点图（保留趋势线，无r值）
+            // =============================================================
+            const rawData = [
+                [68, 550], [70, 700], [72, 160], [73, 400], [74, 1050], [75, 1450],
+                [76, 300], [77, 1550], [78, 2300], [80, 1750], [81, 950], [82, 1150],
+                [83, 1000], [84, 850], [85, 950], [86, 1800], [87, 1650], [88, 1900],
+                [89, 2450], [90, 2200], [91, 2050], [92, 1750], [93, 1550], [94, 850],
+                [95, 750]
+            ];
+
+            function calcStatsGeneral(data) {
+                const n = data.length;
+                let sumX = 0,
+                    sumY = 0,
+                    sumXY = 0,
+                    sumX2 = 0,
+                    sumY2 = 0;
+                for (let [x, y] of data) {
+                    sumX += x;
+                    sumY += y;
+                    sumXY += x * y;
+                    sumX2 += x * x;
+                    sumY2 += y * y;
+                }
+                const r = (n * sumXY - sumX * sumY) / Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+                const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / n;
+                return { r, slope, intercept };
+            }
+
+            const { slope, intercept } = calcStatsGeneral(rawData);
+
+            const scatterData = rawData.map(([rotten, boxOffice]) => ({
+                value: [rotten, boxOffice],
+                rotten: rotten,
+                boxOffice: boxOffice
+            }));
+
+            const domScatter = document.getElementById('scatterChart');
+            const chartScatter = echarts.init(domScatter);
+
+            const xMin = 65,
+                xMax = 100;
+            const yMin = intercept + slope * xMin;
+            const yMax = intercept + slope * xMax;
+
+            const optionScatter = {
+                tooltip: {
+                    trigger: 'item',
+                    backgroundColor: 'rgba(255,255,255,0.97)',
+                    borderColor: '#bcc9db',
+                    borderWidth: 1,
+                    borderRadius: 12,
+                    padding: [12, 16],
+                    textStyle: { fontSize: 13, color: '#172b3a', lineHeight: 1.7 },
+                    formatter: function(params) {
+                        const d = params.data;
+                        if (!d || d.value === undefined) return '加载中…';
+                        return `
+                            <div style="font-weight:600;font-size:15px;margin-bottom:4px;">评分 ${d.value[0]}%</div>
+                            <div>🏆 全球票房：$${d.value[1]}M</div>
+                        `;
+                    },
+                    extraCssText: 'box-shadow: 0 10px 28px rgba(0,0,0,0.10);'
+                },
+                grid: { left: 68, right: 42, top: 26, bottom: 44 },
+                xAxis: {
+                    name: '烂番茄评分',
+                    nameLocation: 'center',
+                    nameGap: 30,
+                    nameTextStyle: { fontSize: 13, fontWeight: 500, color: '#1f3a57' },
+                    min: 65,
+                    max: 100,
+                    interval: 5,
+                    axisLine: { lineStyle: { color: '#cbd8e6' } },
+                    axisTick: { alignWithLabel: true },
+                    splitLine: { show: true, lineStyle: { color: '#eef3f8', type: 'dashed' } },
+                    axisLabel: { fontSize: 12, color: '#3f5a75' }
+                },
+                yAxis: {
+                    name: '全球票房 (百万美元)',
+                    nameLocation: 'center',
+                    nameGap: 46,
+                    nameTextStyle: { fontSize: 13, fontWeight: 500, color: '#1f3a57' },
+                    min: 0,
+                    max: 2600,
+                    interval: 200,
+                    axisLine: { lineStyle: { color: '#cbd8e6' } },
+                    splitLine: { show: true, lineStyle: { color: '#eef3f8', type: 'dashed' } },
+                    axisLabel: { fontSize: 12, color: '#3f5a75', formatter: function(val) { return val + 'M'; } }
+                },
+                series: [{
+                    type: 'scatter',
+                    data: scatterData,
+                    symbolSize: 28,
+                    itemStyle: {
+                        color: '#1f77b4',
+                        opacity: 0.85,
+                        borderColor: '#ffffff',
+                        borderWidth: 1.5,
+                        shadowBlur: 4,
+                        shadowColor: 'rgba(0,0,0,0.06)'
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            opacity: 1,
+                            borderWidth: 3,
+                            borderColor: '#0b1a33',
+                            shadowBlur: 10,
+                            shadowColor: 'rgba(0,0,0,0.15)'
+                        }
+                    },
+                    markLine: {
+                        silent: true,
+                        symbol: ['none', 'none'],
+                        data: [
+                            [
+                                { coord: [xMin, yMin] },
+                                { coord: [xMax, yMax] }
+                            ]
+                        ],
+                        label: { show: false },
+                        lineStyle: {
+                            color: '#d62728',
+                            type: 'dashed',
+                            width: 2
+                        }
+                    }
+                }],
+                legend: { show: false },
+                animationDuration: 700,
+                animationEasing: 'cubicOut'
+            };
+
+            chartScatter.setOption(optionScatter);
+
+            // =============================================================
+            // 7. 自适应
+            // =============================================================
+            const resize = () => {
+                chartBox.resize();
+                chartDeath.resize();
+                chartBubble.resize();
+                if (window.chartPhase1) window.chartPhase1.resize();
+                if (window.chartPhase2) window.chartPhase2.resize();
+                if (window.chartPhase3) window.chartPhase3.resize();
+                chartScatter.resize();
+            };
+            window.addEventListener('resize', resize);
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(() => resize());
+                ro.observe(document.getElementById('boxOfficeChart'));
+                ro.observe(document.getElementById('deathChart'));
+                ro.observe(document.getElementById('bubbleChart'));
+                ro.observe(document.getElementById('phaseScatter1'));
+                ro.observe(document.getElementById('phaseScatter2'));
+                ro.observe(document.getElementById('phaseScatter3'));
+                ro.observe(document.getElementById('scatterChart'));
+            }
+
+            // =============================================================
+            // 8. 目录高亮 (滚动监听)
+            // =============================================================
+            const sections = document.querySelectorAll('.section');
+            const navLinks = document.querySelectorAll('.sidebar nav a');
+
+            function updateActiveLink() {
+                let currentId = '';
+                sections.forEach(sec => {
+                    const rect = sec.getBoundingClientRect();
+                    if (rect.top <= 120) {
+                        currentId = sec.id;
+                    }
+                });
+                navLinks.forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('href') === '#' + currentId);
+                });
+            }
+
+            updateActiveLink();
+
+            let ticking = false;
+            window.addEventListener('scroll', function() {
+                if (!ticking) {
+                    window.requestAnimationFrame(function() {
+                        updateActiveLink();
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    setTimeout(updateActiveLink, 300);
+                });
+            });
+
         })();
     </script>
 
